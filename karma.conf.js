@@ -1,11 +1,17 @@
 // Karma configuration
 var path = require('path');
+var configName = 'inhabit.cfg.json';
 
 try {
-    var inhabitCfg = require(path.join(process.cwd(), 'inhabit.cfg.json'));
+    var inhabitCfg = require(path.join(process.cwd(), configName));
+} catch (e) {
+    throw Error('You have to create "' + configName + '" file to use this tests\n' + e);
+}
+
+try {
     var moduleAbsolutePath = path.join(path.join(process.cwd(), inhabitCfg.main));
 } catch (e) {
-    console.log(e)
+    throw Error('Specified path of main module file is incorrect\n' + e);
 }
 
 module.exports = function (config) {
