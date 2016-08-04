@@ -14,7 +14,7 @@ global.__ark_app__ = {
  */
 var onModuleLoaded = function (module) {
 
-    describe('Module', function () {
+    describe('Module methods existence assurance', function () {
 
         it('should have #getContent', function () {
             module.getContent.bind(module).should.not.throw();
@@ -39,29 +39,28 @@ var onModuleLoaded = function (module) {
         it('should have #display', function () {
             module.display.bind(module).should.not.throw();
         });
+    });
 
-        it('should have #destroy', function () {
-            module.destroy.bind(module).should.not.throw();
+    describe('Module #getContent returning promise assurance', function () {
+        it('should return promise', function () {
+            var result = module.getContent();
+            result.should.be.Object();
+            result.then.should.be.Function();
         });
     });
 
     describe('Module promise resolving assurance', function () {
-
+        var resolve;
         beforeEach(function (done) {
-            var func = module.getContent;
-
-            module.getContent = function () {
-                func.call(module);
-                setTimeout(done, 1000);
-            };
-
-            spyOn(module, 'getContent').and.callThrough();
-            module.getContent();
+            resolve = jasmine.createSpy('resolve');
+            module.getContent().then(function (module) {
+                resolve(module);
+                done();
+            });
         });
 
-        it('should resolve deferred', function (done) {
-            expect(module.deferred.state()).toBe("resolved");
-            done();
+        it('should resolve promise', function () {
+            expect(resolve).toHaveBeenCalledWith(module);
         });
     });
 };
