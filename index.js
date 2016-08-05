@@ -1,15 +1,16 @@
-const humanize = require('tap-spec'),
-    tape = require('tape'),
-    path = require('path'),
-    depsMock = require('../mock/Dependencies'),
-    confMock = require('../mock/Configuration'),
-    fs = require('fs');
+const humanize = require('tap-spec');
+const tape = require('tape');
+const path = require('path');
+const fs = require('fs');
+const depsMock = require('./mock/Dependencies');
+const confMock = require('./mock/Configuration');
+const CFG_FILE_NAME = 'inhabit.cfg.json';
 
-
-module.exports = function (INHABIT_CFG) {
+module.exports = function (dir) {
+    const INHABIT_CFG = path.join(dir, CFG_FILE_NAME);
     global.__ark_app__ = { apps: { push: testModule } };
 
-    var Module;
+    let Module;
 
     tape.createStream()
         .pipe(humanize())
@@ -28,13 +29,13 @@ module.exports = function (INHABIT_CFG) {
     function testModule(Module) {
         tape(Module.name + ' is good enough', function (t) {
             depsMock.then(function (deps) {
-                var module = new Module(confMock, deps);
+                const module = new Module(confMock, deps);
 
                 t.ok(typeof Module === 'function', Module.name + ' is a constructor');
                 t.ok(typeof module === 'object',   Module.name + ' constructs an object');
                 t.ok(typeof module.getContent === 'function', Module.name + '#getContent method exists');
 
-                var promise = module.getContent();
+                const promise = module.getContent();
 
                 t.ok(typeof promise.then === 'function',   Module.name + '#getContent returns promise');
                 t.comment('Waiting for promise resolving');
