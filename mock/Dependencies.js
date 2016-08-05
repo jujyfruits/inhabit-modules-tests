@@ -32,6 +32,9 @@ module.exports = new Promise(function (resolve, reject) {
             reject(err);
         }
 
+        global.window = window;
+        global.document = window.document;
+
         resolve({
             $: require('jquery')(window),
             handlebars: require('handlebars'),

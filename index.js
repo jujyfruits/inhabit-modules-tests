@@ -21,9 +21,10 @@ module.exports = function (dir) {
         t.ok(require(INHABIT_CFG).main !== undefined, 'It has "main" property');
         t.ok(fs.accessSync(path.resolve(require(INHABIT_CFG).main)) === undefined, 'Accessible: ' + path.resolve(require(INHABIT_CFG).main));
 
-        Module = require(path.resolve(require(INHABIT_CFG).main));
-
-        t.end();
+        depsMock.then(function (deps) {
+            Module = require(path.resolve(require(INHABIT_CFG).main));
+            t.end();
+        });
     });
 
     function testModule(Module) {
