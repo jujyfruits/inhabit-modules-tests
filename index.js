@@ -1,4 +1,5 @@
 const humanize = require('tap-spec');
+const notify = require('tap-notify');
 const tape = require('tape');
 const path = require('path');
 const fs = require('fs');
@@ -13,6 +14,7 @@ module.exports = function (dir) {
     let Module;
 
     tape.createStream()
+        .pipe(notify())
         .pipe(humanize())
         .pipe(process.stdout);
 
