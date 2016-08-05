@@ -1,3 +1,1 @@
-module.exports = {
-    "id": "QuizModule"
-};
+module.exports = {};
