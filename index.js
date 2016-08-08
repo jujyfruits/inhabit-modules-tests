@@ -7,7 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const depsMock = require('./mock/Dependencies');
 const confMock = require('./mock/Configuration');
-const CFG_FILE_NAME = 'inhabit.cfg.json';
+const CFG_FILE_NAMES = [ 'inhabit.cfg.json', 'inhabitcfg.json' ];
 
 module.exports = function (dir) {
     depsMock.then(function (dependencies) {
@@ -16,7 +16,7 @@ module.exports = function (dir) {
 };
 
 function test(dir, dependencies) {
-    const INHABIT_CFG = path.resolve(path.join(dir, CFG_FILE_NAME));
+    const INHABIT_CFG_PATH = getCfgFileName(dir);
     global.__ark_app__ = {apps: {push: testModule}};
 
     let Module;
@@ -26,48 +26,54 @@ function test(dir, dependencies) {
         .pipe(humanize())
         .pipe(process.stdout);
 
-    tape('There is an inhabit.cfg.json', function (t) {
-        t.ok(fs.accessSync(INHABIT_CFG) === undefined, 'Accessible: ' + INHABIT_CFG);
-        t.ok(require(INHABIT_CFG).main !== undefined, 'It has "main" property');
-        const MODULE_PATH = path.resolve(path.join(path.dirname(INHABIT_CFG), require(INHABIT_CFG).main));
-        t.ok(fs.accessSync(MODULE_PATH) === undefined, 'Accessible: ' + path.resolve(require(INHABIT_CFG).main));
+    // Base InHabit config file test
+    tape(CFG_FILE_NAMES.join(' or ') + ' tests', function (t) {
 
-        Module = require(MODULE_PATH);
+        // Test: we can access config file
+        t.ok(INHABIT_CFG_PATH !== false, 'Accessible: ' + INHABIT_CFG_PATH);
+
+        // Test: INHABIT_CFG.main is not "undefined"
+        const INHABIT_CFG = require(INHABIT_CFG_PATH);
+        t.ok(INHABIT_CFG.main !== undefined, 'It has "main" property');
+
+        // Test: main file is accessible
+        const MODULE_PATH = path.join(dir, INHABIT_CFG.main);
+        t.doesNotThrow(fs.accessSync.bind(fs, MODULE_PATH), 'Accessible: ' + MODULE_PATH);
+
+        require(MODULE_PATH);
         t.end();
     });
 }
 
 function testModule(Module) {
-    tape(Module.moduleName + ' is good enough', function (t) {
+    tape('Module interface tests', function (t) {
         depsMock.then(function (deps) {
-            const module = new Module(confMock, deps);
 
+            // Test: Module.moduleName class property
             t.ok(typeof Module.moduleName === 'string', 'Module has "moduleName" class property.');
+
+            // Test: Module is a constructor
             t.ok(typeof Module === 'function', Module.moduleName + ' is a constructor');
-            t.ok(typeof Module === 'function', Module.moduleName + ' is a constructor');
+
+            // Test: Module constructor works
+            let module = new Module(confMock, deps);
             t.ok(typeof module === 'object',   Module.moduleName + ' constructs an object');
-            t.ok(typeof module.getContent === 'function', Module.moduleName + '#getContent method exists');
 
-            const promise = module.getContent();
-            t.ok(typeof promise.then === 'function',   Module.moduleName + '#getContent returns promise');
-
-            t.comment('Waiting for promise resolving');
-            promise.then(function () {
-                t.pass('Promise resolved');
-                testPromise(module);
+            // Test: interface methods implemented
+            ['getContent', 'getTitle', 'getType', 'getThumbnail', 'display'].map(function (method) {
+                t.doesNotThrow(module[method].bind(module), /TypeError/, '#' + method + ' does not throws Exception');
             });
+
             t.end();
         });
     });
 }
 
-function testPromise(module) {
-    tape('Testing module after promise resolved', function (t) {
-        t.equals(typeof module.hasContent(),  'boolean', '#hasContent   returns Boolean');
-        t.equals(typeof module.getTitle(),     'string', '#getTitle     returns String');
-        t.equals(typeof module.getThumbnail(), 'string', '#getThumbnail returns String');
-        t.equals(typeof module.getType(),      'string', '#getType      returns String');
-        t.equals(typeof module.display(),      'string', '#display      returns String');
-        t.end();
-    });
+function getCfgFileName(dir) {
+    for (var i = 0; i < CFG_FILE_NAMES.length; i++) {
+        try { fs.accessSync(path.join(dir, CFG_FILE_NAMES[i])); return path.join(dir, CFG_FILE_NAMES[i]); }
+        catch (E) {}
+    }
+
+    return false;
 }
