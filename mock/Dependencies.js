@@ -32,8 +32,8 @@ module.exports = new Promise(function (resolve, reject) {
             reject(err);
         }
 
-        global.window = window;
         global.document = window.document;
+        global.location = document.location;
 
         resolve({
             $: require('jquery')(window),
