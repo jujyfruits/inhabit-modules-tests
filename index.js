@@ -3,6 +3,7 @@
 const humanize = require('tap-spec');
 const notify = require('tap-notify');
 const tape = require('tape');
+const xunit = require('tap-xunit');
 const path = require('path');
 const fs = require('fs');
 const depsMock = require('./mock/Dependencies');
@@ -10,19 +11,22 @@ const confMock = require('./mock/Configuration');
 const CFG_FILE_NAMES = [ 'inhabit.cfg.json', 'inhabitcfg.json' ];
 
 module.exports = function (dir) {
-    depsMock.then(function (dependencies) {
-        test(dir, dependencies);
+    return new Promise(function (resolve, reject) {
+        depsMock.then(function (dependencies) {
+            test(dir, resolve);
+        }, reject);
     });
 };
 
-function test(dir, dependencies) {
+function test(dir, resolve) {
     const INHABIT_CFG_PATH = getCfgFileName(dir);
-    global.__ark_app__ = {apps: {push: testModule}};
-
-    let Module;
+    global.__ark_app__ = { apps: { push: testModule.bind({ resolve: resolve }) } };
 
     tape.createStream()
-        .pipe(notify())
+        .pipe(xunit())
+        .pipe(fs.createWriteStream(path.join(dir, 'TEST-Results.xml')));
+
+    tape.createStream()
         .pipe(humanize())
         .pipe(process.stdout);
 
@@ -46,6 +50,7 @@ function test(dir, dependencies) {
 }
 
 function testModule(Module) {
+    var resolve = this.resolve;
     tape('Module interface tests', function (t) {
         depsMock.then(function (deps) {
 
@@ -64,6 +69,7 @@ function testModule(Module) {
                 t.doesNotThrow(module[method].bind(module), /TypeError/, '#' + method + ' does not throws Exception');
             });
 
+            resolve("Success");
             t.end();
         });
     });
