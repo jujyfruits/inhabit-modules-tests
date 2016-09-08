@@ -12,6 +12,9 @@ var textClassificationService = function () {
     this.getKeywords = function () {
         return new Promise(function (resolve) { resolve(mockData); });
     };
+    this.getTextClassification = function () {
+        return new Promise(function (resolve) { resolve(mockData); });
+    };
 };
 
 var searchEngineService = function () {
