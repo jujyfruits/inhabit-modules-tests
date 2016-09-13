@@ -66,7 +66,7 @@ function testModule(Module) {
 
             // Test: interface methods implemented
             ['getContent', 'getTitle', 'getType', 'getThumbnail', 'display'].map(function (method) {
-                t.doesNotThrow(module[method].bind(module), /TypeError/, '#' + method + ' does not throws Exception');
+                t.doesNotThrow(module[method].bind(module, {}), /Error/, '#' + method + ' does not throws Exception');
             });
 
             resolve("Success");
