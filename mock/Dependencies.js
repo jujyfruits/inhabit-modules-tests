@@ -35,11 +35,15 @@ module.exports = new Promise(function (resolve, reject) {
             reject(err);
         }
 
+        var $ = require('jquery')(window);
+
+        global.window = window;
+        global.navigator = window.navigator;
         global.document = window.document;
         global.location = document.location;
 
         resolve({
-            $: require('jquery')(window),
+            $: $,
             handlebars: require('handlebars'),
             textClassificationService: new textClassificationService(),
             searchEngineService: new searchEngineService()
